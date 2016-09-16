@@ -29,21 +29,23 @@ script:
   - export GIT_BRANCH=origin/$(if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then echo $TRAVIS_BRANCH; else echo `curl -s $PR | jq -r .head.ref`; fi)
   - export GIT_TAG_NAME=${TRAVIS_TAG}
   - echo "TRAVIS_BRANCH=$TRAVIS_BRANCH, PR=$PR, GIT_BRANCH=$GIT_BRANCH GIT_TAG_NAME=$GIT_TAG_NAME"
-  ## need wide columns for blackbox-tests that inspect log output
+  ## blackbox-tests need wide columns when inspecting logs
   - stty cols 200
-  ## bit of a hack: need to fix above docker-engine install to not require sudo to hit daemon
+  ## need to fix above docker-engine install to not require sudo
   - sudo lc bootstrap && sudo lc package && sudo lc publish
 
 before_deploy:
-  - rm ./target/lc-blackbox
-  - export LC_RELEASES=$(ls ./target)
-
+  - rm -f target/lc-blackbox
+  - sudo ls -larh target
+  - sudo chown -R travis:travis target
+  - sudo ls -larh target
 deploy:
   provider: releases
   api_key:
-    secure: x7jhmnBGG6T41Iry3KfDzljAu0GmI9bzEaFCZDN8vUqvdRkkc3q8/DerRM620Yoq8HBK5YIAeFtv+fEpD6jtINcgAaICbyPe63/OSeZxvYZv3yuv9TJLX8HpW9cyRODsTVB4EK2/Ske0QJySR3meuVNsZAx6lruIS8i5sD9c1d2E1LyT+qCSrWB2XM4BRLSOtLJYd1pAMN6AGE+luQaSnARsmPdInHGiTm7fR0y0w6tAXNU93SiQlhLwljJoQtQ1JLqCwsNXLVRZGpnCKL2K+uLy0DoQvvkcJVN1dJLB9FDJ82rWWvicDJ44eUkPSk0mycxnNpCPBoXgVt2nJTjVUSaDJIibHtd25mUOeX2B+SequSbMuF1ktnmhCvFCF8e6YfbHYHfTQtM3kocS4WL5OTgDgT1NQ7RJzx9eJgYFsia9F1/JQrDabcr8rxotF+bLXJS618Fz+FXYNdOrx6Eslcwj3ckmMQZKEb6qdrhDVK/o21e9yf8ol8Yen32p03J6u6J/EyFjOMmGXwdVz+NIBKryLftxOXXoH+6rt2wZ7niyVsTWuH/qu6jE2IkHwloTpQr0ItH8fokMsQ7tT/GeoCnbadb5TQjH9qBHqas8RLvajLUblfafVF2oBYybtaRl2UiqFlXKWHoZk6GzKHIrFxcFUaPkCQyR8V+ZWdzURjY=
-  file: "${LC_RELEASES}"
+    secure: hZTAtzWiPYOY1PW3fyVuGb3vPm7HPydzcP7or5rQD/fU9fXqZMH/HNinJgkEZ4iNtAkq095cDNfGST3d6Kwo/mbTlcUMzGlTNxIgXvyN+B7iuS7T5LhglOfGsoSYjbxpMuJEE1Wgiz0BBzKVr1NcaCVkcAdnsgmUSOyvgqhQytMJYDOVxdOv4bmaVc+4LnZPTfYHgDNPFvHVCGcNKE54KJ3MrsAAw2djLyslwmmy8KygxZkFmjXtyc7r0+eCtO+cy58Wry/q7jH4bGVa0DMAO2HR5W/kTs4exV5aR6SShZG9ibyj/tUoReilHwSILAhJ3zYV4smrhKoM4Ibxc9iJKaIR4Mpx0IDLAAQsOh3a7NX2RxIlN3gw55tcH1vxwAra2+MshzOV73HWju8VuHBcDWQut6c6AFqBiS8AC0qFZYls4hvEd+Ef0iGhQujPIstB4pphCrAFm2lYVXjEH/HKJfYJLvZ26kAl9LTr1JxEe1oBGfavFSp/Fo9cupr9K3QIFindmdRM2qrTCwWcachCbQl2YmhJ+NusE5fQEp0mGei4B/m0+oHElJBNUCd47j9ljzY4UA8D6TGvrOJH/R4cclLZH739Mu1vVPBF5ZEdgg2M/WjN1yGomZQfQ0qgmTcBJkfSJyO8UqtZI8AvEYi97NQHHHwMtBMuWCOHzyXEUno=
   skip_cleanup: true
+  file_glob: true
+  file: target/lc-*-${TRAVIS_TAG}
   on:
-    repo: cisco/elsy
+    repo: paulcichonski/elsy
     tags: true
